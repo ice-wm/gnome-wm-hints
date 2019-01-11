@@ -1,27 +1,30 @@
-(This is a recovery of an old document about GNOME window manager hints.)
+(This is a recovery of an old document about GNOME window manager hints for the purpose of maintaining the [IceWm](https://ice-wm.org/) window manager.)
 
-# GNOME Window Manager Compliance - How to write a GNOME compliant Window Manager
+# GNOME Window Manager Compliance
+## How to write a GNOME compliant Window Manager
 
 ### Table of Contents
+
 1. Providing Client Information For The Window Manager
-* Section 1 - Detection of a GNOME compliant Window Manager
-* Section 2 - Listing GNOME Window Manager Compliance
-* Section 3 - Providing Shortcuts Managed Clients
-* Section 3 - Providing Multiple/Virtual Desktop Information.
+  * Section 1 - Detection of a GNOME compliant Window Manager
+  * Section 2 - Listing GNOME Window Manager Compliance
+  * Section 3 - Providing Shortcuts Managed Clients
+  * Section 3 - Providing Multiple/Virtual Desktop Information.
 2. Reading State Requests From Clients
-* Section 1 - Initial Properties Set On Client Window
-* Section 2 - State Change Requests
+  * Section 1 - Initial Properties Set On Client Window
+  * Section 2 - State Change Requests
 3. Desktop areas, button presses, and releases on the root window.
-* Section 1 - Button press and release forwarding for the desktop window.
-* Section 2 - Desktop Areas as opposed to multiple desktops.
+  * Section 1 - Button press and release forwarding for the desktop window.
+  * Section 2 - Desktop Areas as opposed to multiple desktops.
 4. The Future
-* Section 1 - What Else Is There?
+  * Section 1 - What Else Is There?
 
 This document provides quick and concise information for authors of Window Managers for the X Window System who wish to support the GNOME Desktop and its applications. You need to have a very good and detailed knowledge of the X Window System, Xlib, and how Applications and a Window Manager interact. A knowledge of ICCCM and experience in dealing with client interaction within a Window Manager framework is also assumed.
 
 ## Chapter 1. Providing Client Information For The Window Manager
 
 ### Table of Contents
+
 * Section 1 - Detection of a GNOME compliant Window Manager
 * Section 2 - Listing GNOME Window Manager Compliance
 * Section 3 - Providing Shortcuts Managed Clients
@@ -34,6 +37,7 @@ To do this the Window Manager should create a Window, that is a child of the roo
 Once the Window is created the Window Manager should set a property on the root window of the name `_WIN_SUPPORTING_WM_CHECK`, and type CARDINAL. The atom's data would be a CARDINAL that is the Window ID of the window that was created above. The window that was created would ALSO have this property set on it with the same values and type.
 Example: 
 
+```C
     Display            *disp;
     Window              root_window;
     Atom                atom_set;
@@ -47,12 +51,14 @@ Example:
                     PropModeReplace, (unsigned char *), 1);
     XChangeProperty(disp, win, atom_set, XA_CARDINAL, 32, PropModeReplace,
                     (unsigned char *), 1);
+```
 
 #### Section 2 - Listing GNOME Window Manager Compliance
 
 It is important to list which parts of GNOME Window Manager compliance are supported. This is done fairly easily by doing the following:
 Create a property on the root window of the atom name `_WIN_PROTOCOLS`. This property contains a list(array)of atoms that are all the properties the Window Manager supports. These atoms are any number of the following:
 
+```C
     _WIN_LAYER
     _WIN_STATE
     _WIN_HINTS
@@ -63,10 +69,12 @@ Create a property on the root window of the atom name `_WIN_PROTOCOLS`. This pro
     _WIN_WORKSPACE_COUNT
     _WIN_WORKSPACE_NAMES
     _WIN_CLIENT_LIST
+```
 
 If you list one of these properties then you support it and applications can expect information provided by, or accepted by the Window Manager to work.
 Example:
 
+```C
     Display            *disp;
     Window              root_window;
     Atom                atom_set;
@@ -85,12 +93,14 @@ Example:
     list[9] = XInternAtom(disp, "_WIN_CLIENT_LIST", False);
     XChangeProperty(disp, root_window, atom_set, XA_ATOM, 32, PropModeReplace,
                     (unsigned char *)list, 10);
+```
 
 #### Section 3 - Providing Shortcuts Managed Clients
 
 As an aide in having external applications be able to list and access clients being managed by the Window Manager, a property should be set on the root window of the name `_WIN_CLIENT_LIST` which is an array of type CARDINAL. Each entry is the Window ID of a managed client. If the list of managed clients changes, clients are added or deleted, this list should be updated. 
 Example: 
 
+```C
     Display            *disp;
     Window              root_window;
     Atom                atom_set;
@@ -99,12 +109,13 @@ Example:
           
     atom_set = XInternAtom(disp, "_WIN_CLIENT_LIST", False);
     num = number_of_clients;
-    wl = malloc(sizeof(Window) * num);
+    wl = (Window *) malloc(sizeof(Window) * num);
     /* Fill in array of window ID's */
     XChangeProperty(disp, root_window, atom_set, XA_CARDINAL, 32, 
                     PropModeReplace, (unsigned char *)wl, num);
     if (wl)
       free(wl);
+```
 
 #### Section 4 - Providing Multiple/Virtual Desktop Information.
 
@@ -113,6 +124,7 @@ First you should advertise how many Desktops your Window Manager supports. This 
 Lastly you should set a property that is a list of strings called `_WIN_WORKSPACE_NAMES` that contains names for the desktops (the first string is the name of the first desktop, the second string is the second desktop, etc.). This will allow applications to know what the name of the desktop is too, possibly to display it.
 Example: 
 
+```C
     Display            *disp;
     Window              root_window;
     Atom                atom_set;
@@ -130,32 +142,36 @@ Example:
     XChangeProperty(disp, root_window, atom_set, XA_CARDINAL, 32, 
                     PropModeReplace, (unsigned char *), 1);
     atom_set = XInternAtom(disp, "_WIN_WORKSPACE_NAMES", False);
-    names = malloc(sizeof(char *) * number_of_desks);
+    names = (char **) malloc(sizeof(char *) * number_of_desks);
     for (i = 0; i < number_of_desks; i++)
       {
         snprintf(s, sizeof(s), "Desktop %i", i);
-        names[i] = malloc(strlen(s) + 1);
+        names[i] = (char *) malloc(strlen(s) + 1);
         strcpy(names[i], s);
       }
-    if (XStringListToTextProperty(names, mode.numdesktops, ))
+    if (XStringListToTextProperty(names, mode.numdesktops, &text))
       {
-        XSetTextProperty(disp, root_window, , atom_set);
+        XSetTextProperty(disp, root_window, &text, atom_set);
         XFree(text.value);
       }
     for (i = 0; i < number_of_desks; i++)
       free(names[i]);
     free(names);
+```
 
 ## Chapter 2. Reading State Requests From Clients
 
 ### Table of Contents
+
 * Section 1 - Initial Properties Set On Client Window
 * Section 2 - State Change Requests
-* Section 1 - Initial Properties Set On Client Window
+
+#### Section 1 - Initial Properties Set On Client Window
 
 When a client first maps a window, before calling XMapWindow, it will set properties on the client window with certain atoms as their types. The property atoms set can be any or all of `_WIN_LAYER`, `_WIN_STATE`, `_WIN_WORKSPACE`, `_WIN_EXPANDED_SIZE` and `_WIN_HINTS`. 
 Each of these properties is of the type CARDINAL, and `_WIN_EXPANDED_SIZE` is an array of 4 CARDINAL's. For the `_WIN_STATE` and `_WIN_HINTS` properties, the bits set mean that state/property is desired by the client. The bitmask for `_WIN_STATE` is as follows:
 
+```C
     #define WIN_STATE_STICKY          (1<<0) /*everyone knows sticky*/
     #define WIN_STATE_MINIMIZED       (1<<1) /*Reserved - definition is unclear*/
     #define WIN_STATE_MAXIMIZED_VERT  (1<<2) /*window in maximized V state*/
@@ -166,20 +182,24 @@ Each of these properties is of the type CARDINAL, and `_WIN_EXPANDED_SIZE` is an
     #define WIN_STATE_HID_TRANSIENT   (1<<7) /*owner of transient is hidden*/
     #define WIN_STATE_FIXED_POSITION  (1<<8) /*window is fixed in position even*/
     #define WIN_STATE_ARRANGE_IGNORE  (1<<9) /*ignore for auto arranging*/
+```
 
 These are a simple bitmasks - if the bit is set, that state is desired by the application. Once the application window has been mapped it is the responsibility of the Window Manager to set these properties to the current state of the Window whenever it changes states. If the window is unmapped the application is again responsible, if unmapped by the application.
 The bitmask for `_WIN_HINTS` is as follows:
 
+```C
     #define WIN_HINTS_SKIP_FOCUS      (1<<0) /*"alt-tab" skips this win*/
     #define WIN_HINTS_SKIP_WINLIST    (1<<1) /*do not show in window list*/
     #define WIN_HINTS_SKIP_TASKBAR    (1<<2) /*do not show on taskbar*/
     #define WIN_HINTS_GROUP_TRANSIENT (1<<3) /*Reserved - definition is unclear*/
     #define WIN_HINTS_FOCUS_ON_CLICK  (1<<4) /*app only accepts focus if clicked*/
+```
 
 This is also a simple bitmask but only the application changes it, thus whenever this property changes the Window Manager should re-read it and honor any changes.
 `_WIN_WORKSPACE` is a CARDINAL that is the Desktop number the app would like to be on. This desktop number is updated by the Window Manager after the window is mapped and until the window is unmapped by the application. The value for this property is simply the numeric for the desktop 0, being the first desktop available.
 `_WIN_LAYER` is also a CARDINAL that is the stacking layer the application wishes to exist in. The values for this property are:
 
+```C
     #define WIN_LAYER_DESKTOP                0
     #define WIN_LAYER_BELOW                  2
     #define WIN_LAYER_NORMAL                 4
@@ -187,6 +207,7 @@ This is also a simple bitmask but only the application changes it, thus whenever
     #define WIN_LAYER_DOCK                   8
     #define WIN_LAYER_ABOVE_DOCK             10
     #define WIN_LAYER_MENU                   12
+```
 
 The application can choose one of these layers to exist in. It can also specify a layer other than the ones listed above if it wishes to exist between 2 layers. The layer remains constant and the window will always be arranged in stacking order between windows in the layers above and below its own layer. If the Window Manager changes the layer of an application it should change this property.
 
@@ -194,6 +215,7 @@ The application can choose one of these layers to exist in. It can also specify 
 
 After an application has mapped a window, it may wish to change its own state. To do this the client sends ClientMessages to the root window with information on how to change the application's state. Clients will send messages as follows:
 
+```C
     Display             *disp;
     Window               root, client_window;
     XClientMessageEvent  xev;
@@ -204,7 +226,7 @@ After an application has mapped a window, it may wish to change its own state. T
     xev.message_type = XInternAtom(disp, XA_WIN_LAYER, False);
     xev.format = 32;
     xev.data.l[0] = new_layer;
-    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) );
+    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) &xev);
   
     Display             *disp;
     Window               root, client_window;
@@ -217,21 +239,24 @@ After an application has mapped a window, it may wish to change its own state. T
     xev.format = 32;
     xev.data.l[0] = mask_of_members_to_change;
     xev.data.l[1] = new_members;
-    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) );
+    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) &xev);
    
     Display             *disp;
     Window               root, client_window;
     XClientMessageEvent  xev;
     CARD32               new_desktop_number;
+```
 
 If an application wishes to change the current active desktop it will send a client message to the root window as follows:
 
+```C
     xev.type = ClientMessage;
     xev.window = client_window;
     xev.message_type = XInternAtom(disp, XA_WIN_WORKSPACE, False);
     xev.format = 32;
     xev.data.l[0] = new_desktop_number;
-    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) );
+    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) &xev);
+```
 
 If the Window Manager picks up any of these ClientMessage events it should honor them.
 
@@ -249,6 +274,7 @@ This is done as follows:
 
 1. Set a property on the root window called `_WIN_DESKTOP_BUTTON_PROXY`. It is of the type cardinal - its value is the Window ID of another window that is not mapped that is created as an immediate child of the root window. This window also has this property set on it pointing to itself.
 
+```C
       Display *disp;
       Window root, bpress_win;
       Atom atom_set;
@@ -259,15 +285,18 @@ This is done as follows:
       val = bpress_win;
       XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *), 1);
       XChangeProperty(disp, bpress_win, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *), 1); 
+```
 
 2. Whenever the WM gets a button press or release event it can check the button on the mouse pressed, any modifiers etc. - if the WM wants the event it can deal with it as per normal and not proxy it on - if the WM does not wish to do anything as a result of this event, then it shoudl pass the event along like following:
 
+```C
       Display            *disp;
       Window              bpress_win;
       XEvent             *ev;
       
       XUngrabPointer(disp, CurrentTime);
       XSendEvent(disp, bpress_win, False, SubstructureNotifyMask, ev);
+```
   
 where ev is a pointer to the actual Button press or release event it receives from the X Server (retaining timestamp, original window ID, co-ordinates etc.)
 NB. the XUngrabPointer is only required before proxying a press, not a release.
@@ -281,6 +310,7 @@ The best way to explain this is as follows. Desktops are completely geometricall
 If your WM supports both methods like FVMW, Enlightenment and possible others, you should use `_WIN_WORKSPACE` messages and atoms for the geometrically disjoint desktops - for geometrically arranged desktops you should use the `_WIN_AREA` messages and atoms. if you only support one of these it is preferable to use `_WIN_WORKSPACE` only.
 The APi for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the size of your areas (ie N x M screens in size) you set an atom on the root window as follows:
 
+```C
     Display            *disp;
     Window              root;
     Atom                atom_set;
@@ -291,9 +321,11 @@ The APi for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the si
     val[1] = number_of_screens_vertically;
     XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace,
                     (unsigned char *)val, 2);
+```
  
 To advertise which desktop area is the currently active one:
 
+```C
     Display            *disp;
     Window              root;
     Atom                atom_set;
@@ -304,9 +336,11 @@ To advertise which desktop area is the currently active one:
     val[1] = current_active_area_y; /* starts at 0 */
     XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace,
                     (unsigned char *)val, 2);
+```
  
 If a client wishes to change what the current active area is they simply send a client message like:
 
+```C
     Display            *disp;
     Window              root;
     XClientMessageEvent xev;
@@ -317,7 +351,8 @@ If a client wishes to change what the current active area is they simply send a 
     xev.format = 32;
     xev.data.l[0] = new_active_area_x;
     xev.data.l[0] = new_active_area_y;
-    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) );
+    XSendEvent(disp, root, False, SubstructureNotifyMask, (XEvent *) &xev);
+```
 
 ## Chapter 4. The Future
 
