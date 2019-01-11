@@ -53,16 +53,16 @@ Example:
 It is important to list which parts of GNOME Window Manager compliance are supported. This is done fairly easily by doing the following:
 Create a property on the root window of the atom name `_WIN_PROTOCOLS`. This property contains a list(array)of atoms that are all the properties the Window Manager supports. These atoms are any number of the following:
 
-    `_WIN_LAYER` 
-    `_WIN_STATE` 
-    `_WIN_HINTS` 
-    `_WIN_APP_STATE` 
-    `_WIN_EXPANDED_SIZE` 
-    `_WIN_ICONS` 
-    `_WIN_WORKSPACE` 
-    `_WIN_WORKSPACE_COUNT` 
-    `_WIN_WORKSPACE_NAMES` 
-    `_WIN_CLIENT_LIST`
+    _WIN_LAYER
+    _WIN_STATE
+    _WIN_HINTS
+    _WIN_APP_STATE
+    _WIN_EXPANDED_SIZE
+    _WIN_ICONS
+    _WIN_WORKSPACE
+    _WIN_WORKSPACE_COUNT
+    _WIN_WORKSPACE_NAMES
+    _WIN_CLIENT_LIST
 
 If you list one of these properties then you support it and applications can expect information provided by, or accepted by the Window Manager to work.
 Example:
@@ -177,8 +177,8 @@ The bitmask for `_WIN_HINTS` is as follows:
     #define WIN_HINTS_FOCUS_ON_CLICK  (1<<4) /*app only accepts focus if clicked*/
 
 This is also a simple bitmask but only the application changes it, thus whenever this property changes the Window Manager should re-read it and honor any changes.
-_WIN_WORKSPACE is a CARDINAL that is the Desktop number the app would like to be on. This desktop number is updated by the Window Manager after the window is mapped and until the window is unmapped by the application. The value for this property is simply the numeric for the desktop 0, being the first desktop available.
-_WIN_LAYER is also a CARDINAL that is the stacking layer the application wishes to exist in. The values for this property are:
+`_WIN_WORKSPACE` is a CARDINAL that is the Desktop number the app would like to be on. This desktop number is updated by the Window Manager after the window is mapped and until the window is unmapped by the application. The value for this property is simply the numeric for the desktop 0, being the first desktop available.
+`_WIN_LAYER` is also a CARDINAL that is the stacking layer the application wishes to exist in. The values for this property are:
 
     #define WIN_LAYER_DESKTOP                0
     #define WIN_LAYER_BELOW                  2
@@ -244,30 +244,40 @@ If the Window Manager picks up any of these ClientMessage events it should honor
 
 #### Section 1 - Button press and release forwarding for the desktop window.
 
-X imposes a limitiation - that only 1 client can select for button presses on a window - this is due to the implicit grab nature of button press events in X. This poses a problem when more than one client wishes to select for these events on the same window - ie the root window, or in the case of a WM that has more than one root window (virtual root windows) any of these windows. The solution to this is to have the client that recieves these events handle any of the events it is interested in, and then ``proxy'' or ``pass on'' any events it doesnt not care about. Seeing the traditional model has always been that the WM selects for butotn presses on the desktop, it is only natural that it keep doing this BUT have a way of sending unwanted presses onto some other process(es) that may well be interested.
+X imposes a limitiation - that only 1 client can select for button presses on a window - this is due to the implicit grab nature of button press events in X. This poses a problem when more than one client wishes to select for these events on the same window - ie the root window, or in the case of a WM that has more than one root window (virtual root windows) any of these windows. The solution to this is to have the client that recieves these events handle any of the events it is interested in, and then ``proxy`` or ``pass on`` any events it doesnt not care about. Seeing the traditional model has always been that the WM selects for butotn presses on the desktop, it is only natural that it keep doing this BUT have a way of sending unwanted presses onto some other process(es) that may well be interested.
 This is done as follows:
+
 1. Set a property on the root window called `_WIN_DESKTOP_BUTTON_PROXY`. It is of the type cardinal - its value is the Window ID of another window that is not mapped that is created as an immediate child of the root window. This window also has this property set on it pointing to itself.
-    Display *disp; Window root, bpress_win; Atom atom_set; CARD32 val; atom_set = XInternAtom(disp, "_WIN_DESKTOP_BUTTON_PROXY", False); bpress_win = ECreateWindow(root, -80, -80, 24, 24, 0); val = bpress_win; XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *), 1); XChangeProperty(disp, bpress_win, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *), 1); 
+
+      Display *disp;
+      Window root, bpress_win;
+      Atom atom_set;
+      CARD32 val;
+      
+      atom_set = XInternAtom(disp, "_WIN_DESKTOP_BUTTON_PROXY", False);
+      bpress_win = ECreateWindow(root, -80, -80, 24, 24, 0);
+      val = bpress_win;
+      XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *), 1);
+      XChangeProperty(disp, bpress_win, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *), 1); 
+
 2. Whenever the WM gets a button press or release event it can check the button on the mouse pressed, any modifiers etc. - if the WM wants the event it can deal with it as per normal and not proxy it on - if the WM does not wish to do anything as a result of this event, then it shoudl pass the event along like following:
 
-    Display            *disp;
-    Window              bpress_win;
-    XEvent             *ev;
-     
-    XUngrabPointer(disp, CurrentTime);
-    XSendEvent(disp, bpress_win, False, SubstructureNotifyMask, ev);
+      Display            *disp;
+      Window              bpress_win;
+      XEvent             *ev;
+      
+      XUngrabPointer(disp, CurrentTime);
+      XSendEvent(disp, bpress_win, False, SubstructureNotifyMask, ev);
   
 where ev is a pointer to the actual Button press or release event it receives from the X Server (retaining timestamp, original window ID, co-ordinates etc.)
-
-NB - the XUngrabPointer is only required before proxying a press, not a release.
+NB. the XUngrabPointer is only required before proxying a press, not a release.
 
 The WM should proxy both button press and release events. It should only proxy a release if it also proxied the press corresponding to that release.
-
 It is the responsibility of any apps listening for these events (and as many apps as want to can since they are being sent under the guise of SubstructureNotify events), to handle grabbing the pointer again and handling all events for the mouse while pressed until release etc.
 
 #### Section 2 - Desktop Areas as opposed to multiple desktops.
 
-The best way to explain this is as follows. Desktops are completely geometrically disjoint workspaces. They have no geometric relevance to each other in terms of the client window plane. Desktop Areas have geometric relevance - they are next to, above or below each other. The best examples are FVWM's desktops and virtual desktops - you can have multiple desktops that are disjoint and each desktop can be N x M screens in size - these N x M areas are what are termed ``desktop areas'' for the purposes of this document and the WM API.
+The best way to explain this is as follows. Desktops are completely geometrically disjoint workspaces. They have no geometric relevance to each other in terms of the client window plane. Desktop Areas have geometric relevance - they are next to, above or below each other. The best examples are FVWM's desktops and virtual desktops - you can have multiple desktops that are disjoint and each desktop can be N x M screens in size - these N x M areas are what are termed ``desktop areas`` for the purposes of this document and the WM API.
 If your WM supports both methods like FVMW, Enlightenment and possible others, you should use `_WIN_WORKSPACE` messages and atoms for the geometrically disjoint desktops - for geometrically arranged desktops you should use the `_WIN_AREA` messages and atoms. if you only support one of these it is preferable to use `_WIN_WORKSPACE` only.
 The APi for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the size of your areas (ie N x M screens in size) you set an atom on the root window as follows:
 
