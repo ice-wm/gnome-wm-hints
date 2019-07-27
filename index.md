@@ -7,20 +7,19 @@ These hints have been superceded by the [Extended Window Manager Hints][3].)
 
 ### Table of Contents
 
-1. [Providing Client Information For The Window Manager](#chapter-1-providing-client-information-for-the-window-manager)
-  - Section 1 - [Detection of a GNOME compliant Window Manager](#section-1---detection-of-a-gnome-compliant-window-manager)
-  - Section 2 - [Listing GNOME Window Manager Compliance](#section-2---listing-gnome-window-manager-compliance)
-  - Section 3 - [Providing Shortcuts Managed Clients](#section-3---providing-shortcuts-managed-clients)
-  - Section 4 - [Providing Multiple/Virtual Desktop Information.](#section-4---providing-multiplevirtual-desktop-information)
-2. [Reading State Requests From Clients](#chapter-2-reading-state-requests-from-clients)
-  - Section 1 - [Initial Properties Set On Client Window](#section-1---initial-properties-set-on-client-window)
-  - Section 2 - [State Change Requests](#section-2---state-change-requests)
-3. [Desktop areas, button presses, and releases on the root window.](#chapter-3-desktop-areas-button-presses-and-releases-on-the-root-window)
-  - Section 1 - [Button press and release forwarding for the desktop window.](#section-1---button-press-and-release-forwarding-for-the-desktop-window)
-  - Section 2 - [Desktop Areas as opposed to multiple desktops.](#section-2---desktop-areas-as-opposed-to-multiple-desktops)
-4. [The Future](#chapter-4-the-future)
-  - Section 1 - [What Else Is There?](#section-1---what-else-is-there)
-
+* [Chapter 1](#chapter-1-providing-client-information-for-the-window-manager) Providing Client Information For The Window Manager
+  - [Section 1](#section-1---detection-of-a-gnome-compliant-window-manager) Detection of a GNOME compliant Window Manager
+  - [Section 2](#section-2---listing-gnome-window-manager-compliance) Listing GNOME Window Manager Compliance
+  - [Section 3](#section-3---providing-shortcuts-managed-clients) Providing Shortcuts Managed Clients
+  - [Section 4](#section-4---providing-multiplevirtual-desktop-information) Providing Multiple/Virtual Desktop Information.
+* [Chapter 2](#chapter-2-reading-state-requests-from-clients) Reading State Requests From Clients
+  - [Section 1](#section-1---initial-properties-set-on-client-window) Initial Properties Set On Client Window
+  - [Section 2](#section-2---state-change-requests) State Change Requests
+* [Chapter 3](#chapter-3-desktop-areas-button-presses-and-releases-on-the-root-window) Desktop areas, button presses, and releases on the root window.
+  - [Section 1](#section-1---button-press-and-release-forwarding-for-the-desktop-window) Button press and release forwarding for the desktop window.
+  - [Section 2](#section-2---desktop-areas-as-opposed-to-multiple-desktops) Desktop Areas as opposed to multiple desktops.
+* [Chapter 4](#chapter-4-the-future) The Future
+  - [Section 1](#section-1---what-else-is-there) What Else Is There?
 
 This document provides quick and concise information for authors of Window Managers for the X Window System who wish to support the GNOME Desktop and its applications. You need to have a very good and detailed knowledge of the X Window System, Xlib, and how Applications and a Window Manager interact. A knowledge of ICCCM and experience in dealing with client interaction within a Window Manager framework is also assumed.
 
