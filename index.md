@@ -287,7 +287,7 @@ X imposes a limitation - that only one client can select for button presses on a
       CARD32 val;
 
       atom_set = XInternAtom(disp, "_WIN_DESKTOP_BUTTON_PROXY", False);
-      bpress_win = ECreateWindow(root, -80, -80, 24, 24, 0);
+      bpress_win = XCreateSimpleWindow(disp, root, -80, -80, 24, 24, 0, 0, 0);
       val = bpress_win;
       XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32,
                       PropModeReplace, (unsigned char *) &val, 1);
@@ -314,9 +314,9 @@ It is the responsibility of any apps listening for these events (and as many app
 
 The best way to explain this is as follows. Desktops are completely geometrically disjoint workspaces. They have no geometric relevance to each other in terms of the client window plane. Desktop Areas have geometric relevance - they are next to, above or below each other. The best examples are FVWM's desktops and virtual desktops - you can have multiple desktops that are disjoint and each desktop can be `N x M` screens in size - these `N x M` areas are what are termed ``desktop areas`` for the purposes of this document and the WM API.
 
-If your WM supports both methods like FVMW, Enlightenment and possible others, you should use `_WIN_WORKSPACE` messages and atoms for the geometrically disjoint desktops - for geometrically arranged desktops you should use the `_WIN_AREA` messages and atoms. if you only support one of these it is preferable to use `_WIN_WORKSPACE` only.
+If your WM supports both methods like FVWM, Enlightenment and possible others, you should use `_WIN_WORKSPACE` messages and atoms for the geometrically disjoint desktops - for geometrically arranged desktops you should use the `_WIN_AREA` messages and atoms. if you only support one of these it is preferable to use `_WIN_WORKSPACE` only.
 
-The API for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the size of your areas (ie N x M screens in size) you set an atom on the root window as follows:
+The API for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the size of your areas (ie `N x M` screens in size) you set an atom on the root window as follows:
 
 ```c
     Display            *disp;
