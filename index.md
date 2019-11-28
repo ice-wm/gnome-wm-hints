@@ -1,6 +1,6 @@
-(This is a recovery of an [old document][1] about GNOME window manager
+﻿(This is a recovery of an [old document][1] about GNOME window manager
 hints for the purpose of maintaining the [IceWM][2] window manager.
-These hints have been superceded by the [Extended Window Manager Hints][3].)
+These hints have been superseded by the [Extended Window Manager Hints][3].)
 
 # GNOME Window Manager Compliance
 ## How to write a GNOME compliant Window Manager
@@ -122,7 +122,9 @@ Example:
 #### Section 4 - Providing Multiple/Virtual Desktop Information.
 
 If your Window Manager supports the concept of Multiple/Virtual Desktops or Workspaces then you will definitely want to include it. This involves your Window Manager setting several properties on the root window.
+
 First you should advertise how many Desktops your Window Manager supports. This is done by setting a property on the root window with the atom name `_WIN_WORKSPACE_COUNT` of type CARDINAL. The properties data is a 32-bit integer that is the number of Desktops your Window Manager currently supports. If you can add and delete desktops while running, you may change this property and its value whenever required. You should also set a property of the atom `_WIN_WORKSPACE` of type CARDINAL that contains the number of the currently active desktop (which is a number between 0 and the number advertised by `_WIN_WORKSPACE_COUNT` - 1). Whenever the active desktop changes, change this property.
+
 Lastly you should set a property that is a list of strings called `_WIN_WORKSPACE_NAMES` that contains names for the desktops (the first string is the name of the first desktop, the second string is the second desktop, etc.). This will allow applications to know what the name of the desktop is too, possibly to display it.
 Example:
 
@@ -171,6 +173,7 @@ Example:
 #### Section 1 - Initial Properties Set On Client Window
 
 When a client first maps a window, before calling XMapWindow, it will set properties on the client window with certain atoms as their types. The property atoms set can be any or all of `_WIN_LAYER`, `_WIN_STATE`, `_WIN_WORKSPACE`, `_WIN_EXPANDED_SIZE` and `_WIN_HINTS`.
+
 Each of these properties is of the type CARDINAL, and `_WIN_EXPANDED_SIZE` is an array of 4 CARDINAL's. For the `_WIN_STATE` and `_WIN_HINTS` properties, the bits set mean that state/property is desired by the client. The bitmask for `_WIN_STATE` is as follows:
 
 ```c
@@ -187,6 +190,7 @@ Each of these properties is of the type CARDINAL, and `_WIN_EXPANDED_SIZE` is an
 ```
 
 These are a simple bitmasks - if the bit is set, that state is desired by the application. Once the application window has been mapped it is the responsibility of the Window Manager to set these properties to the current state of the Window whenever it changes states. If the window is unmapped the application is again responsible, if unmapped by the application.
+
 The bitmask for `_WIN_HINTS` is as follows:
 
 ```c
@@ -198,7 +202,9 @@ The bitmask for `_WIN_HINTS` is as follows:
 ```
 
 This is also a simple bitmask but only the application changes it, thus whenever this property changes the Window Manager should re-read it and honor any changes.
+
 `_WIN_WORKSPACE` is a CARDINAL that is the Desktop number the app would like to be on. This desktop number is updated by the Window Manager after the window is mapped and until the window is unmapped by the application. The value for this property is simply the numeric for the desktop 0, being the first desktop available.
+
 `_WIN_LAYER` is also a CARDINAL that is the stacking layer the application wishes to exist in. The values for this property are:
 
 ```c
@@ -271,11 +277,9 @@ If the Window Manager picks up any of these ClientMessage events it should honor
 
 #### Section 1 - Button press and release forwarding for the desktop window.
 
-X imposes a limitiation - that only 1 client can select for button presses on a window - this is due to the implicit grab nature of button press events in X. This poses a problem when more than one client wishes to select for these events on the same window - ie the root window, or in the case of a WM that has more than one root window (virtual root windows) any of these windows. The solution to this is to have the client that recieves these events handle any of the events it is interested in, and then ``proxy`` or ``pass on`` any events it doesnt not care about. Seeing the traditional model has always been that the WM selects for butotn presses on the desktop, it is only natural that it keep doing this BUT have a way of sending unwanted presses onto some other process(es) that may well be interested.
-This is done as follows:
+X imposes a limitation - that only one client can select for button presses on a window. This is due to the implicit grab nature of button press events in X. This poses a problem when more than one client wishes to select for these events on the same window - ie the root window, or in the case of a WM that has more than one root window (virtual root windows), any of these windows. The solution to this is to have the client that receives these events handle any of the events it is interested in, and then ``proxy`` or ``pass on`` any events it doesn't not care about. Seeing the traditional model has always been that the WM selects for button presses on the desktop, it is only natural that it keep doing this, but have a way of sending unwanted presses onto some other process(es) that may well be interested. This is done as follows:
 
-1. Set a property on the root window called `_WIN_DESKTOP_BUTTON_PROXY`. It is of the type cardinal - its value is the Window ID of another window that is not mapped that is created as an immediate child of the root window. This window also has this property set on it pointing to itself.
-
+1. Set a property on the root window called `_WIN_DESKTOP_BUTTON_PROXY`. It is of the type cardinal - its value is the Window ID of another window that is not mapped and that is created as an immediate child of the root window. This window also has this property set on it, pointing to itself.
 ```c
       Display *disp;
       Window root, bpress_win;
@@ -288,9 +292,7 @@ This is done as follows:
       XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &val, 1);
       XChangeProperty(disp, bpress_win, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &val, 1);
 ```
-
-2. Whenever the WM gets a button press or release event it can check the button on the mouse pressed, any modifiers etc. - if the WM wants the event it can deal with it as per normal and not proxy it on - if the WM does not wish to do anything as a result of this event, then it should pass the event along like following:
-
+2. Whenever the WM gets a button press or release event it can check the button on the mouse pressed, any modifiers, etc. If the WM wants the event it can deal with it as per normal and not proxy it on. If the WM does not wish to do anything as a result of this event, then it should pass the event along like following:
 ```c
       Display            *disp;
       Window              bpress_win;
@@ -309,8 +311,10 @@ It is the responsibility of any apps listening for these events (and as many app
 #### Section 2 - Desktop Areas as opposed to multiple desktops.
 
 The best way to explain this is as follows. Desktops are completely geometrically disjoint workspaces. They have no geometric relevance to each other in terms of the client window plane. Desktop Areas have geometric relevance - they are next to, above or below each other. The best examples are FVWM's desktops and virtual desktops - you can have multiple desktops that are disjoint and each desktop can be `N x M` screens in size - these `N x M` areas are what are termed ``desktop areas`` for the purposes of this document and the WM API.
+
 If your WM supports both methods like FVMW, Enlightenment and possible others, you should use `_WIN_WORKSPACE` messages and atoms for the geometrically disjoint desktops - for geometrically arranged desktops you should use the `_WIN_AREA` messages and atoms. if you only support one of these it is preferable to use `_WIN_WORKSPACE` only.
-The APi for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the size of your areas (ie N x M screens in size) you set an atom on the root window as follows:
+
+The API for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the size of your areas (ie N x M screens in size) you set an atom on the root window as follows:
 
 ```c
     Display            *disp;
