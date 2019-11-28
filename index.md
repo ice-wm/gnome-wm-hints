@@ -51,14 +51,14 @@ Example:
     val = win;
     XChangeProperty(disp, root_window, atom_set, XA_CARDINAL, 32,
                     PropModeReplace, (unsigned char *) &val, 1);
-    XChangeProperty(disp, win, atom_set, XA_CARDINAL, 32, PropModeReplace,
-                    (unsigned char *) &val, 1);
+    XChangeProperty(disp, win, atom_set, XA_CARDINAL, 32,
+                    PropModeReplace, (unsigned char *) &val, 1);
 ```
 
 #### Section 2 - Listing GNOME Window Manager Compliance
 
 It is important to list which parts of GNOME Window Manager compliance are supported. This is done fairly easily by doing the following:
-Create a property on the root window of the atom name `_WIN_PROTOCOLS`. This property contains a list(array)of atoms that are all the properties the Window Manager supports. These atoms are any number of the following:
+Create a property on the root window of the atom name `_WIN_PROTOCOLS`. This property contains a list(array) of atoms that are all the properties the Window Manager supports. These atoms are any number of the following:
 
 ```c
     _WIN_LAYER
@@ -93,8 +93,8 @@ Example:
     list[7] = XInternAtom(disp, "_WIN_WORKSPACE_COUNT", False);
     list[8] = XInternAtom(disp, "_WIN_WORKSPACE_NAMES", False);
     list[9] = XInternAtom(disp, "_WIN_CLIENT_LIST", False);
-    XChangeProperty(disp, root_window, atom_set, XA_ATOM, 32, PropModeReplace,
-                    (unsigned char *)list, 10);
+    XChangeProperty(disp, root_window, atom_set, XA_ATOM, 32,
+                    PropModeReplace, (unsigned char *) list, 10);
 ```
 
 #### Section 3 - Providing Shortcuts Managed Clients
@@ -114,9 +114,9 @@ Example:
     wl = (Window *) malloc(sizeof(Window) * num);
     /* Fill in array of window ID's */
     XChangeProperty(disp, root_window, atom_set, XA_CARDINAL, 32,
-                    PropModeReplace, (unsigned char *)wl, num);
+                    PropModeReplace, (unsigned char *) wl, num);
     if (wl)
-      free(wl);
+        free(wl);
 ```
 
 #### Section 4 - Providing Multiple/Virtual Desktop Information.
@@ -289,8 +289,10 @@ X imposes a limitation - that only one client can select for button presses on a
       atom_set = XInternAtom(disp, "_WIN_DESKTOP_BUTTON_PROXY", False);
       bpress_win = ECreateWindow(root, -80, -80, 24, 24, 0);
       val = bpress_win;
-      XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &val, 1);
-      XChangeProperty(disp, bpress_win, atom_set, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &val, 1);
+      XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32,
+                      PropModeReplace, (unsigned char *) &val, 1);
+      XChangeProperty(disp, bpress_win, atom_set, XA_CARDINAL, 32,
+                      PropModeReplace, (unsigned char *) &val, 1);
 ```
 2. Whenever the WM gets a button press or release event it can check the button on the mouse pressed, any modifiers, etc. If the WM wants the event it can deal with it as per normal and not proxy it on. If the WM does not wish to do anything as a result of this event, then it should pass the event along like following:
 ```c
@@ -325,8 +327,8 @@ The API for `_WIN_AREA` is very similar to `_WIN_WORKSPACE`. To advertise the si
     atom_set = XInternAtom(disp, "_WIN_AREA_COUNT", False);
     val[0] = number_of_screens_horizontally;
     val[1] = number_of_screens_vertically;
-    XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace,
-                    (unsigned char *)val, 2);
+    XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32,
+                    PropModeReplace, (unsigned char *) val, 2);
 ```
 
 To advertise which desktop area is the currently active one:
@@ -340,8 +342,8 @@ To advertise which desktop area is the currently active one:
     atom_set = XInternAtom(disp, "_WIN_AREA", False);
     val[0] = current_active_area_x; /* starts at 0 */
     val[1] = current_active_area_y; /* starts at 0 */
-    XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32, PropModeReplace,
-                    (unsigned char *)val, 2);
+    XChangeProperty(disp, root, atom_set, XA_CARDINAL, 32,
+                    PropModeReplace, (unsigned char *) val, 2);
 ```
 
 If a client wishes to change what the current active area is they simply send a client message like:
